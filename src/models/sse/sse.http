@@ -1,0 +1,9 @@
+
+
+# test: sse
+GET http://localhost:4000/api/sse/stream
+
+###
+
+# test: sse
+GET http://localhost:4000/api/sse/send

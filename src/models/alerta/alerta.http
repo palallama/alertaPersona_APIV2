@@ -1,0 +1,31 @@
+
+
+POST http://localhost:4000/api/alerta/
+Content-Type: application/json
+
+{
+    "usuarioId": 7,
+    "latitud": -39.9587501,
+    "longitud": -71.084678
+}
+
+
+###
+
+GET http://localhost:4000/api/alerta/
+
+
+###
+
+GET http://localhost:4000/api/alerta/6
+
+
+###
+
+PATCH http://localhost:4000/api/alerta/2/cerrar
+Content-Type: application/json
+
+{
+    "id": 6,
+    "estado": "S"
+}

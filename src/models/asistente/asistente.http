@@ -1,0 +1,25 @@
+
+
+POST http://localhost:4000/api/asistente/
+Content-Type: application/json
+
+{
+    "alertaId": 1,
+    "usuarioId": 7,
+    "estado": "A"
+}
+
+
+###
+
+GET http://localhost:4000/api/asistente/
+
+
+###
+
+GET http://localhost:4000/api/asistente/alerta/1
+
+
+###
+
+GET http://localhost:4000/api/asistente/alerta/1/usuario/7

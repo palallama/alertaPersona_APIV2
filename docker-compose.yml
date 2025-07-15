@@ -1,0 +1,11 @@
+
+# Define services
+services:
+  # Backend service
+  backend:
+    build: .  # Build the Docker image using the Dockerfile in the current directory
+    ports:
+      - "54001:54001"  # Forward the container's port 54001 to the host machine's port 54001 for accessing the backend service
+    env_file:
+      - .env  # Load environment variables from the .env file in the current directory
+

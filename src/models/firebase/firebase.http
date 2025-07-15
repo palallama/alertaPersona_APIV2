@@ -1,0 +1,20 @@
+
+POST http://localhost:54001/api/notifications
+Content-Type: application/json
+
+{
+  "token": "e2RtK-RwRniD2m4FnpDrfR:APA91bGE4vdxor8a1XwG8AF3ntfP-0-7k6GNwMteRnqLxayUbIDMRVAtTcOdeT_tpZsmLcldWKqwLn_NpuSPXBtSXoAuKn8deN4rpYw404B2tKOsild0K5E",
+  "title": "Nueva alerta",
+  "body": "Se emitio una nueva alerta"
+}
+
+###
+
+POST https://alerta-persona-api.julitorossian.dev/api/notifications
+Content-Type: application/json
+
+{
+  "token": "e2RtK-RwRniD2m4FnpDrfR:APA91bEGsSBIj6rs15CCu4mcaVLb5IWN_7wLod84tcXTpMqkS_jNyVkuxEEk9Pki_DEqWCCknPS20IF_ui__HR9Qj_Rs-C1CI6xlyUDxPO1b68h5ucMzZ-8",
+  "title": "Nueva alerta",
+  "body": "Se emitio una nueva alerta"
+}

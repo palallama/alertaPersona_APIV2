@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = ".\\..\\node_modules\\.prisma\\client"//"../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model usuario {
+  id           Int       @id @default(autoincrement())
+  nombre       String    @db.VarChar(100)
+  apellido     String    @db.VarChar(100)
+  nroDocumento String    @db.VarChar(8)
+  telefono     String    @db.VarChar(20)
+  nroTramite   String    @db.VarChar(11)
+  genero       String    @db.VarChar(1)
+  fchNacimiento DateTime @db.DateTime(0)
+  mail         String    @unique @db.VarChar(255)
+  password     String    @db.VarChar(255)
+  validado     Boolean   @default(false)
+  activo       Boolean   @default(true)
+  fechaCreacion DateTime  @default(now()) @db.DateTime(0)
+  ultimoAcceso DateTime? @db.DateTime(0)
+
+  // Relaciones
+  preferencias   usuarioPreferencia[]
+  adicionales usuarioAdicional[]
+  alertas       alerta[]
+  asistentes     asistente[]
+  notificaciones notificacion[]
+
+  // Índices
+  @@index([activo])
+  @@index([mail])
+  @@index([nroDocumento])
+}
+
+model alerta {
+  id Int @default(autoincrement())
+  usuarioId Int
+  usuario usuario @relation(fields: [usuarioId], references: [id])
+  latitud Float
+  longitud Float
+  estado String @default("E") @db.Char(1)
+  fchEmision DateTime @default(now()) @db.DateTime(0)
+  fchCierre DateTime? @db.DateTime(0)
+  cerrada Boolean @default(false)
+
+  asistentes asistente[]
+
+  @@id(id)
+}
+
+model asistente {
+  alertaId Int
+  alerta alerta @relation(fields: [alertaId], references: [id])
+  usuarioId Int
+  usuario usuario @relation(fields: [usuarioId], references: [id])
+  estado String @db.Char(1)
+  observacion String?
+
+  @@id([alertaId, usuarioId])
+}
+
+model notificacion {
+  id Int @default(autoincrement())
+  usuarioId Int
+  usuario usuario @relation(fields: [usuarioId], references: [id])
+  fchEmision DateTime @default(now())
+  leida Boolean @default(false)
+
+  @@id(id)
+}
+
+model usuarioPreferencia {
+  usuarioId Int
+  usuario usuario @relation(fields: [usuarioId], references: [id])
+  clave String
+
+  @@id([usuarioId, clave])
+}
+
+
+// Tabla donde almacenar datos adicionales de los usuarios
+// Ejemplo: preferencias de notificación, token de notificacion, codigo de recuperacion, etc.
+
+model usuarioAdicional {
+  usuarioId Int
+  usuario usuario @relation(fields: [usuarioId], references: [id])
+  clave String
+  valor String
+
+  @@id([usuarioId, clave])
+}

@@ -1,0 +1,19 @@
+
+
+POST http://localhost:4000/api/usuario-adicional/
+Content-Type: application/json
+
+{
+    "usuarioId": 7,
+    "clave": "notiToken",
+    "valor": "notiToken"
+}
+
+###
+
+GET http://localhost:4000/api/usuario-adicional/usuario/7/clave/notiToken
+
+###
+
+GET http://localhost:4000/api/usuario-adicional/usuario/7
+

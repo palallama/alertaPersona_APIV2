@@ -1,0 +1,25 @@
+
+
+# get usuarios-preferencias
+GET http://localhost:4000/api/usuario-preferencias/usuario/9
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYWlsIjoibWFpbEBtYWlsLmNvbSIsImlkIjoxLCJpYXQiOjE3MDI3MTAzOTcsImV4cCI6MTcwMjcxMzk5N30.rU4_Q7rXXe0fNP7ZU-dghuperAERY_7cJGNkSERwRjQ
+
+
+###
+
+# Delete usuario-preferencias
+POST http://localhost:4000/api/usuario-preferencias/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYWlsIjoibWFpbEBtYWlsLmNvbSIsImlkIjoxLCJpYXQiOjE3MDI3MTAzOTcsImV4cCI6MTcwMjcxMzk5N30.rU4_Q7rXXe0fNP7ZU-dghuperAERY_7cJGNkSERwRjQ
+
+{
+    "usuarioId": 9,
+    "clave": "notificacion"
+}
+
+###
+
+# getSet usuario-preferencias
+GET http://localhost:4000/api/usuario-preferencias/usuario/9/clave/NOTIFICACION/setDel
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYWlsIjoibWFpbEBtYWlsLmNvbSIsImlkIjoxLCJpYXQiOjE3MDI3MTAzOTcsImV4cCI6MTcwMjcxMzk5N30.rU4_Q7rXXe0fNP7ZU-dghuperAERY_7cJGNkSERwRjQ
+
