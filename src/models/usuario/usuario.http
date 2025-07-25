@@ -1,33 +1,29 @@
+@host = http://localhost
+@port = 4000
+# @host = https://alerta-persona-api.julitorossian.dev
 
+@baseUrl = {{host}}:{{port}}/api
+# @baseUrl = {{host}}/api
+
+@token = {{login.response.body.access_token}}
+###
 
 # get usuarios
-GET http://localhost:4000/api/usuario/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjksInVzZXJuYW1lIjoiSnVsaWFuIiwiZW1haWwiOiJqdWxpYW4udG9yb3NzaWFuQG91dGxvb2suY29tIiwiaWF0IjoxNzUyMTkxODY4LCJleHAiOjE3NTIxOTU0Njh9.f3YeWMBUMIJihs-iYd8ft9S786DtbdCG3-wgUBTMZTk
-
+GET {{baseUrl}}/usuario/
+Authorization: Bearer {{token}}
 
 ###
 
 # get usuario
-GET http://localhost:4000/api/usuario/7
-# auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYWlsIjoibWFpbEBtYWlsLmNvbSIsImlkIjo0LCJpYXQiOjE2OTY0NjE2MjMsImV4cCI6MTY5NjQ2NTIyM30.QVQUXvc_-YtY3nXXiMG1ZDL6zdXQvHmQzD0VPA65y8o
-
-###
-#cambiar contrasena
-
-PATCH http://localhost:4000/api/v1/usuario/1/cambiarContrasena
-Content-Type: application/json
-
-{
-    "id": 1,
-    "password": "lalala" 
-}
+GET {{baseUrl}}/usuario/7
+Authorization: Bearer {{token}}
 
 ###
 
 # Insert usuario
-
-POST http://localhost:4000/api/usuario/
+POST {{baseUrl}}/usuario/
 Content-Type: application/json
+Authorization: Bearer {{token}}
 
 {
     "nombre": "julian",
@@ -39,11 +35,12 @@ Content-Type: application/json
     "mail": "mail2@mail.com",
     "password": "123456789"
 }
+
 ###
 
 # SET TOKEN
 
-POST http://localhost:4000/api/v1/usuario/3/setNotificacionToken
+POST {{baseUrl}}/usuario/3/setNotificacionToken
 Content-Type: application/json
 
 {
@@ -51,12 +48,12 @@ Content-Type: application/json
     "token": "dvSXzuQjSoKSDfmlVBrHGLAPA91bG6OX7cIypZ3KMVwIBS8JoH9EnLfaSZgLCdoWB6ziL09Nmo5dlOu1PshRuDRy8X4xSN8pj1g8oQeIAU3phI8O9AJIW9DZriTi7RKlaCxG7UiG6B0dMGA01Ct14XCwUoDQ"
 }
 
-### 
+###
 
 # test iniciar sesion
-POST http://localhost:4000/api/auth/login
+# @name login
+POST {{baseUrl}}/auth/login
 Content-Type: application/json
-# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjcsInVzZXJuYW1lIjoianVsaWFuIiwiZW1haWwiOiJtYWlsMkBtYWlsLmNvbSIsImlhdCI6MTc0NTU5ODM0OSwiZXhwIjoxNzQ1NjAxOTQ5fQ.TZZB2mJTTkAiK7JFTOaAf2-NiLT713KCg_QcE0sz2J4
 
 {
     "mail": "julian.torossian@outlook.com",
@@ -65,17 +62,17 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:4000/api/auth/profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjcsInVzZXJuYW1lIjoianVsaWFuIiwiZW1haWwiOiJqdWxpYW4udG9yb3NzaWFuQG91dGxvb2suY29tIiwiaWF0IjoxNzQ2NTM4ODk2LCJleHAiOjE3NDY1NDI0OTZ9.feMbUdUXYwHkskOJ6vzs4HSRwwP6PCsooq-7wH1ollY
-
-
-###
-
-# ver historial
-GET http://localhost:4000/api/v1/usuario/4/historial
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{token}}
 
 ###
 
 # ver historial
-GET http://localhost:4000/api/usuario/historial-alertas/7
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjcsInVzZXJuYW1lIjoianVsaWFuIiwiZW1haWwiOiJqdWxpYW4udG9yb3NzaWFuQG91dGxvb2suY29tIiwiaWF0IjoxNzQ2NTM4ODk2LCJleHAiOjE3NDY1NDI0OTZ9.feMbUdUXYwHkskOJ6vzs4HSRwwP6PCsooq-7wH1ollY
+GET {{baseUrl}}/usuario/4/historial
+Authorization: Bearer {{token}}
+
+###
+
+# ver historial
+GET {{baseUrl}}/usuario/historial-alertas/4
+Authorization: Bearer {{token}}

@@ -25,4 +25,3 @@ EXPOSE 54001
 
 # Command to run the app
 CMD [  "npm", "run", "start:migrate:prod" ]
-

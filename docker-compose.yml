@@ -1,11 +1,47 @@
 
-# Define services
 services:
-  # Backend service
-  backend:
-    build: .  # Build the Docker image using the Dockerfile in the current directory
+  api:
+    build: .
+    image: alertapersona
+    container_name: alertapersona-api
     ports:
-      - "54001:54001"  # Forward the container's port 54001 to the host machine's port 54001 for accessing the backend service
+      - "54001:54001"
     env_file:
-      - .env  # Load environment variables from the .env file in the current directory
+      - .env
 
+
+# services:
+#   alerta-persona:
+#     container_name: alerta-persona
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     ports:
+#       - '54001:54001'
+#     env_file:
+#       - .env
+#     depends_on:
+#       - mysql
+#     networks:
+#       - app-network
+#     restart: always
+#     command: sh -c "npx prisma migrate deploy && npm run start:dev"
+
+#   mysql:
+#     image: mysql:8.0
+#     container_name: mysql-alerta
+#     environment:
+#       MYSQL_ROOT_PASSWORD: segura
+#       MYSQL_DATABASE: alertapersona
+#     volumes:
+#       - mysql_data:/var/lib/mysql
+#     networks:
+#       - app-network
+#     restart: always
+
+# networks:
+#   app-network:
+#     driver: bridge
+
+# volumes:
+#   mysql_data:

@@ -46,11 +46,15 @@ export class UsuarioService extends PrismaClient implements OnModuleInit {
   //   });
   // }
 
-  async findByEmail(mail: string) {
-    return this.usuario.findUnique({
-      where: { mail },
-    });
+  async findByEmail(mail: string, activo: boolean = false) {
+  const where: any = { mail };
+  if (activo) {
+    where.activo = true;
   }
+  return this.usuario.findUnique({
+    where,
+  });
+}
 
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
     return this.usuario.update({
@@ -71,16 +75,17 @@ export class UsuarioService extends PrismaClient implements OnModuleInit {
   }
 
   async loginUser(mail: string) {
-    const  user = await this.findByEmail(mail);
+    const  user = await this.findByEmail(mail, true);
     if (user){
       await this.usuario.update({
-        where: { id: user.id },
+        where: { 
+          id: user.id
+        },
         data: {
           ultimoAcceso: new Date(),
         },
       })
 
-      // this.mailService.recuperoPassword(user, '123456');
     }
     return user;
   }
