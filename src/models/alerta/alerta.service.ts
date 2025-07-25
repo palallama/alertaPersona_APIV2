@@ -10,9 +10,13 @@ import { UsuarioAdicionalService } from '../usuario-adicional/usuario-adicional.
 
 @Injectable()
 export class AlertaService extends PrismaClient implements OnModuleInit {
-  private firebaseService: FirebaseService;
-  private usuarioService: UsuarioService;
-  private usuarioAdicionalService: UsuarioAdicionalService;
+  constructor(
+    private firebaseService: FirebaseService,
+    private usuarioService: UsuarioService,
+    private usuarioAdicionalService: UsuarioAdicionalService,
+  ) {
+    super();
+  }
 
   private readonly logger = new Logger('AlertaService');
   onModuleInit() {
@@ -128,14 +132,14 @@ export class AlertaService extends PrismaClient implements OnModuleInit {
     // this.logger.log(`Emitiendo alerta con ID: ${alertaId} para el usuario ID: ${usuarioId}`);
     
     const data = {
-      alerta: alertaId,
+      alerta: String(alertaId),
       motivo: 'A'
     }
 
     const usuarios = await this.usuarioService.findAll();
 
     usuarios.forEach(async usuario => {
-      if (usuario.id !== usuarioId) {
+      if (usuario.id !== usuarioId && usuario.activo) {
         const token = await this.usuarioAdicionalService.findOne(usuario.id, 'notiToken');
         if (token) {
           this.firebaseService.sendNotificationAlerta(token.valor, data);

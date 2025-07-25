@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UsuarioAdicionalService } from './usuario-adicional.service';
 import { CreateUsuarioAdicionalDto } from './dto/create-usuario-adicional.dto';
@@ -17,8 +18,10 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Usuario Adicional')
+@UseGuards(JwtAuthGuard)
 @Controller('usuario-adicional')
 export class UsuarioAdicionalController {
   constructor(private readonly usuarioAdicionalService: UsuarioAdicionalService) {}
@@ -26,7 +29,13 @@ export class UsuarioAdicionalController {
   @Post()
   @ApiOperation({ summary: 'Crear un usuario adicional' })
   @ApiResponse({ status: 201, description: 'Usuario adicional creado' })
-  create(@Body() createUsuarioAdicionalDto: CreateUsuarioAdicionalDto) {
+  async create(@Body() createUsuarioAdicionalDto: CreateUsuarioAdicionalDto) {
+
+    const adicional = await this.usuarioAdicionalService.findOne(createUsuarioAdicionalDto.usuarioId, createUsuarioAdicionalDto.clave);
+    if (adicional) { 
+      console.log(adicional)
+      await this.usuarioAdicionalService.remove(adicional.usuario.id, adicional.clave);
+    }
     return this.usuarioAdicionalService.create(createUsuarioAdicionalDto);
   }
 

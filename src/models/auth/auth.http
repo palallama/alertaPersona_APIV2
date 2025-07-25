@@ -1,26 +1,36 @@
+# @host = http://localhost
+# @port = 4000
+@host = https://alerta-persona-api.julitorossian.dev
+
+# @baseUrl = {{host}}:{{port}}/api/
+@baseUrl = {{host}}/api
+
+@token = {{login.response.body.access_token}}
+###
 
 # test iniciar sesion
-POST http://localhost:4000/api/auth/login
+# @name login
+POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
     "mail": "julian.torossian@outlook.com",
-    "password": "123456789"
+    "password": "987654321"
 }
 
 ###
 
-GET http://localhost:4000/api/auth/profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjcsInVzZXJuYW1lIjoianVsaWFuIiwiZW1haWwiOiJqdWxpYW4udG9yb3NzaWFuQG91dGxvb2suY29tIiwiaWF0IjoxNzQ2NTUyNzI5LCJleHAiOjE3NDY1NTYzMjl9.oavDVogpLmEl3MiK_7iq5PJyK2zkMblVxQbJclEAPUU
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{token}}
 
 
 ###
 
 # Cambio de contraseña
 
-POST http://localhost:4000/api/auth/cambiar-contrasena
+POST {{baseUrl}}/auth/cambiar-contrasena
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjksInVzZXJuYW1lIjoiSnVsaWFuIiwiZW1haWwiOiJqdWxpYW4udG9yb3NzaWFuQG91dGxvb2suY29tIiwiaWF0IjoxNzQ4NTcyMzQ5LCJleHAiOjE3NDg1NzU5NDl9.5VSwjEy9otWfYLCPlqt_b0vrrdwuxgCOHk-zm2YzlUk
+Authorization: Bearer {{token}}
 
 {
     "nuevaContrasena": "987654321",
