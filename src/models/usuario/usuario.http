@@ -68,11 +68,11 @@ Authorization: Bearer {{token}}
 ###
 
 # ver historial
-GET {{baseUrl}}/usuario/4/historial
+GET {{baseUrl}}/usuario/1/historial
 Authorization: Bearer {{token}}
 
 ###
 
 # ver historial
-GET {{baseUrl}}/usuario/historial-alertas/4
+GET {{baseUrl}}/usuario/historial-alertas/1
 Authorization: Bearer {{token}}

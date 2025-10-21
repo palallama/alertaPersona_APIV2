@@ -1,12 +1,12 @@
-import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { CreateAlertaDto } from './dto/create-alerta.dto';
 import { UpdateAlertaDto } from './dto/update-alerta.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { CloseAlertaDto } from './dto/close-alerta.dto';
 import { FirebaseService } from '../firebase/firebase.service';
 import { UsuarioService } from '../usuario/usuario.service';
 import { UsuarioAdicionalService } from '../usuario-adicional/usuario-adicional.service';
+import { ContactoService } from '../contacto/contacto.service';
 
 @Injectable()
 export class AlertaService extends PrismaClient implements OnModuleInit {
@@ -14,6 +14,7 @@ export class AlertaService extends PrismaClient implements OnModuleInit {
     private firebaseService: FirebaseService,
     private usuarioService: UsuarioService,
     private usuarioAdicionalService: UsuarioAdicionalService,
+    private contactoService: ContactoService,
   ) {
     super();
   }
@@ -136,16 +137,24 @@ export class AlertaService extends PrismaClient implements OnModuleInit {
       motivo: 'A'
     }
 
-    const usuarios = await this.usuarioService.findAll();
+    const contactos = await this.contactoService.findActiveContactsByUsuario(usuarioId, true);
+    this.logger.log(`Usuarios a notificar: ${JSON.stringify(contactos)}`);
 
-    usuarios.forEach(async usuario => {
-      if (usuario.id !== usuarioId && usuario.activo) {
-        const token = await this.usuarioAdicionalService.findOne(usuario.id, 'notiToken');
-        if (token) {
-          this.firebaseService.sendNotificationAlerta(token.valor, data);
-        }
+    for (const contacto of contactos) {
+      const token = await this.usuarioAdicionalService.findOne(contacto.contactoId, 'notiToken');
+      if (token) {
+        // this.firebaseService.sendNotificationAlerta(token.valor, data);
+        this.logger.log(`Notificación enviada al usuario ID: ${contacto.contactoId} con token: ${token.valor}`);
       }
-    });
+    }
+    // usuarios.forEach(async usuario => {
+    //   if (usuario.id !== usuarioId && usuario.activo) {
+    //     const token = await this.usuarioAdicionalService.findOne(usuario.id, 'notiToken');
+    //     if (token) {
+    //       this.firebaseService.sendNotificationAlerta(token.valor, data);
+    //     }
+    //   }
+    // });
 
   }
 }
