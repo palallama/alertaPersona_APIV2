@@ -20,8 +20,5 @@ COPY . .
 RUN npx prisma generate
 COPY prisma ./node_modules/@prisma/client
 
-# Expose the port the app runs on, here, I was using port 3333
-EXPOSE 54001
-
 # Command to run the app
 CMD [  "npm", "run", "start:migrate:prod" ]
