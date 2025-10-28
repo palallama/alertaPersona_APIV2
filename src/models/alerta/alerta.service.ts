@@ -119,13 +119,13 @@ export class AlertaService extends PrismaClient implements OnModuleInit {
   private formatAlerta(alerta: any) {
     return {
       ...alerta,
-      ubicacion: {
-        latitud: alerta.latitud,
-        longitud: alerta.longitud,
-      },
+      // ubicacion: {
+      latitud: alerta.latitud,
+      longitud: alerta.longitud,
+      // },
       // Eliminamos los campos originales para evitar duplicados
-      latitud: undefined,
-      longitud: undefined,
+      // latitud: undefined,
+      // longitud: undefined,
     };
   }
 

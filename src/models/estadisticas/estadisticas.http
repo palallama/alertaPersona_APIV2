@@ -1,0 +1,110 @@
+### Variables
+@baseUrl = http://localhost:4000
+@apiUrl = {{baseUrl}}/api/estadisticas
+
+###############################################
+# ENDPOINTS DE ESTADÍSTICAS
+###############################################
+
+### 1. Obtener alertas por usuario específico (sin filtro de fechas)
+GET {{apiUrl}}/alertas/usuario/1
+Content-Type: application/json
+
+### 2. Obtener alertas por usuario con filtro de fechas
+GET {{apiUrl}}/alertas/usuario/1?desde=2025-01-01T00:00:00.000Z&hasta=2025-12-31T23:59:59.999Z
+Content-Type: application/json
+
+### 3. Obtener alertas por usuario con solo fecha desde
+GET {{apiUrl}}/alertas/usuario/2?desde=2025-10-01T00:00:00.000Z
+Content-Type: application/json
+
+### 4. Obtener alertas por usuario con solo fecha hasta
+GET {{apiUrl}}/alertas/usuario/3?hasta=2025-10-27T23:59:59.999Z
+Content-Type: application/json
+
+###############################################
+
+### 5. Obtener alertas totales (sin filtro)
+GET {{apiUrl}}/alertas/totales
+Content-Type: application/json
+
+### 6. Obtener alertas totales con filtro de fechas
+GET {{apiUrl}}/alertas/totales?desde=2025-01-01T00:00:00.000Z&hasta=2025-12-31T23:59:59.999Z
+Content-Type: application/json
+
+### 7. Obtener alertas totales del mes actual
+GET {{apiUrl}}/alertas/totales?desde=2025-10-01T00:00:00.000Z&hasta=2025-10-31T23:59:59.999Z
+Content-Type: application/json
+
+###############################################
+
+### 8. Obtener alertas emitidas (sin filtros)
+GET {{apiUrl}}/alertas/emitidas
+Content-Type: application/json
+
+### 9. Obtener alertas emitidas con filtro de fechas
+GET {{apiUrl}}/alertas/emitidas?desde=2025-01-01T00:00:00.000Z&hasta=2025-12-31T23:59:59.999Z
+Content-Type: application/json
+
+### 10. Obtener alertas emitidas con estado específico
+GET {{apiUrl}}/alertas/emitidas?estado=E
+Content-Type: application/json
+
+### 11. Obtener alertas canceladas
+GET {{apiUrl}}/alertas/emitidas?estado=C
+Content-Type: application/json
+
+### 12. Obtener alertas solucionadas
+GET {{apiUrl}}/alertas/emitidas?estado=S
+Content-Type: application/json
+
+### 13. Obtener alertas expiradas
+GET {{apiUrl}}/alertas/emitidas?estado=X
+Content-Type: application/json
+
+### 14. Obtener alertas emitidas con filtro completo (fechas + estado)
+GET {{apiUrl}}/alertas/emitidas?desde=2025-10-01T00:00:00.000Z&hasta=2025-10-27T23:59:59.999Z&estado=E
+Content-Type: application/json
+
+###############################################
+
+### 15. Obtener usuarios registrados
+GET {{apiUrl}}/usuarios/registrados
+Content-Type: application/json
+
+###############################################
+# ENDPOINTS LEGACY (Solo información)
+###############################################
+
+### 16. Información de endpoints (Legacy)
+GET {{apiUrl}}
+Content-Type: application/json
+
+### 17. Get by ID (Legacy - no disponible)
+GET {{apiUrl}}/1
+Content-Type: application/json
+
+###############################################
+# EJEMPLOS CON DIFERENTES RANGOS DE FECHAS
+###############################################
+
+### 18. Estadísticas del último trimestre
+GET {{apiUrl}}/alertas/totales?desde=2025-07-01T00:00:00.000Z&hasta=2025-09-30T23:59:59.999Z
+Content-Type: application/json
+
+### 19. Estadísticas de la última semana
+GET {{apiUrl}}/alertas/emitidas?desde=2025-10-20T00:00:00.000Z&hasta=2025-10-27T23:59:59.999Z
+Content-Type: application/json
+
+### 20. Alertas de usuario en el último mes
+GET {{apiUrl}}/alertas/usuario/1?desde=2025-09-27T00:00:00.000Z&hasta=2025-10-27T23:59:59.999Z
+Content-Type: application/json
+
+###############################################
+# NOTAS DE USO
+###############################################
+
+# Formato de fechas: ISO 8601 (YYYY-MM-DDTHH:mm:ss.sssZ)
+# Estados disponibles: E (Emitida), C (Cancelada), S (Solucionada), X (Expirada)
+# Todos los filtros de fecha son opcionales
+# Los endpoints devuelven estadísticas agregadas, no listados de registros

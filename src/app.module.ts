@@ -15,6 +15,7 @@ import { FirebaseService } from './models/firebase/firebase.service';
 import { UsuarioAdicionalService } from './models/usuario-adicional/usuario-adicional.service';
 import { UsuarioAdicionalModule } from './models/usuario-adicional/usuario-adicional.module';
 import { ContactoModule } from './models/contacto/contacto.module';
+import { EstadisticasModule } from './models/estadisticas/estadisticas.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ContactoModule } from './models/contacto/contacto.module';
     MailModule,
     UsuarioAdicionalModule,
     ContactoModule,
+    EstadisticasModule,
   ],
   controllers: [SseController],
   providers: [FirebaseService, UsuarioAdicionalService],

@@ -10,7 +10,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYWlsIjoibWFpbEBtY
 # Delete usuario-preferencias
 POST http://localhost:4000/api/usuario-preferencias/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYWlsIjoibWFpbEBtYWlsLmNvbSIsImlkIjoxLCJpYXQiOjE3MDI3MTAzOTcsImV4cCI6MTcwMjcxMzk5N30.rU4_Q7rXXe0fNP7ZU-dghuperAERY_7cJGNkSERwRjQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiSnVsaWFuIiwiZW1haWwiOiJqdWxpYW4udG9yb3NzaWFuQG91dGxvb2suY29tIiwiaWF0IjoxNzYxNjA4NzAyLCJleHAiOjE3NjE2MTIzMDJ9.Om9FdiZb4aAoRc949lT6lhNQ6Sg291y9iOlpbrWW4S8
 
 {
     "usuarioId": 9,
@@ -20,6 +20,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYWlsIjoibWFpbEBtY
 ###
 
 # getSet usuario-preferencias
-GET http://localhost:4000/api/usuario-preferencias/usuario/9/clave/NOTIFICACION/setDel
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYWlsIjoibWFpbEBtYWlsLmNvbSIsImlkIjoxLCJpYXQiOjE3MDI3MTAzOTcsImV4cCI6MTcwMjcxMzk5N30.rU4_Q7rXXe0fNP7ZU-dghuperAERY_7cJGNkSERwRjQ
+GET http://localhost:4000/api/usuario-preferencias/usuario/1/clave/EMAIL/setDel
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiSnVsaWFuIiwiZW1haWwiOiJqdWxpYW4udG9yb3NzaWFuQG91dGxvb2suY29tIiwiaWF0IjoxNzYxNjA4NzAyLCJleHAiOjE3NjE2MTIzMDJ9.Om9FdiZb4aAoRc949lT6lhNQ6Sg291y9iOlpbrWW4S8
 

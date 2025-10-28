@@ -133,6 +133,8 @@ export class AuthService {
     const adicional = await this.usuarioAdicionalService.findOne(user.id, "codigoRecupero")
     this.logger.log(adicional);
 
+    this.logger.log(adicional!.valor);
+
     // Validar código
     if (!adicional || adicional.valor !== codigo) {
       throw new NotFoundException('Código inválido o expirado');
