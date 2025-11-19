@@ -26,7 +26,7 @@ export class AuthService {
     return await this.usuarioService.create(createUsuarioDto);
   }
 
-  async validateUser(email: string, pass: string): Promise<any> {
+  async validateUser(email: string, pass: string, controlAdmin: boolean = false): Promise<any> {
 
     const user = await this.usuarioService.loginUser(email);
 
@@ -34,6 +34,21 @@ export class AuthService {
       this.logger.warn('User not found');
       throw new UnauthorizedException("Usuario no encontrado");
     }
+    
+    if (!user.activo) {
+      this.logger.warn('User inactive');
+      throw new UnauthorizedException("Usuario inactivo");
+    }
+
+    if (controlAdmin && !user.esAdmin) {
+      this.logger.warn('User is not admin');
+      throw new UnauthorizedException("Acceso denegado: no es un usuario administrador");
+    }
+    
+    // if (!user.validado) {
+    //   this.logger.warn('User not validated');
+    //   throw new UnauthorizedException("El usuario no ha sido validado");
+    // }
 
     if (!(await bcrypt.compare(pass, user.password))) {
       this.logger.warn('Password mismatch');

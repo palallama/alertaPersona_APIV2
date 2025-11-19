@@ -10,6 +10,129 @@ import {
 export class EstadisticasService {
   constructor(private prisma: PrismaService) {}
 
+  // ===== MÉTODOS DASHBOARD =====
+  /**
+   * Obtener todas las estadísticas del dashboard en una sola llamada
+   */
+  async getDashboard() {
+    const [estadisticas, alertasPorDia, alertasPorHora] = await Promise.all([
+      this.getDashboardEstadisticas(),
+      this.getDashboardAlertasPorDia(7),
+      this.getDashboardAlertasPorHora(),
+    ]);
+
+    return {
+      estadisticas,
+      alertasPorDia,
+      alertasPorHora,
+    };
+  }
+
+  /**
+   * Obtener estadísticas generales para el dashboard
+   */
+  async getDashboardEstadisticas() {
+    const [totalUsuarios, totalAlertas, alertasCanceladas] = await Promise.all([
+      this.prisma.usuario.count(),
+      this.prisma.alerta.count(),
+      this.prisma.alerta.count({
+        where: {
+          estado: 'C', // C = Cancelada
+        },
+      }),
+    ]);
+
+    return {
+      totalUsuarios,
+      totalAlertas,
+      alertasCanceladas,
+    };
+  }
+
+  /**
+   * Obtener alertas por día (últimos N días)
+   */
+  async getDashboardAlertasPorDia(dias: number = 7) {
+    const hoy = new Date();
+    const fechaInicio = new Date();
+    fechaInicio.setDate(hoy.getDate() - dias + 1);
+    fechaInicio.setHours(0, 0, 0, 0);
+
+    // Obtener todas las alertas del período
+    const alertas = await this.prisma.alerta.findMany({
+      where: {
+        fchEmision: {
+          gte: fechaInicio,
+        },
+      },
+      select: {
+        fchEmision: true,
+        estado: true,
+      },
+    });
+
+    // Agrupar por día
+    const alertasPorDia = new Map<string, { alertasSolucionadas: number; alertasCanceladas: number }>();
+
+    // Inicializar todos los días con 0
+    for (let i = 0; i < dias; i++) {
+      const fecha = new Date(fechaInicio);
+      fecha.setDate(fechaInicio.getDate() + i);
+      const fechaStr = fecha.toISOString().split('T')[0];
+      alertasPorDia.set(fechaStr, { alertasSolucionadas: 0, alertasCanceladas: 0 });
+    }
+
+    // Contar alertas
+    alertas.forEach((alerta) => {
+      const fechaStr = alerta.fchEmision.toISOString().split('T')[0];
+      const datos = alertasPorDia.get(fechaStr);
+      if (datos) {
+        if (alerta.estado === 'C') {
+          // C = Cancelada
+          datos.alertasCanceladas++;
+        } else if (alerta.estado === 'S') {
+          // S = Solucionada
+          datos.alertasSolucionadas++;
+        }
+      }
+    });
+
+    // Convertir a array
+    return Array.from(alertasPorDia.entries())
+      .map(([fecha, datos]) => ({
+        fecha,
+        ...datos,
+      }))
+      .sort((a, b) => a.fecha.localeCompare(b.fecha));
+  }
+
+  /**
+   * Obtener alertas por hora del día (0-23)
+   */
+  async getDashboardAlertasPorHora() {
+    // Obtener todas las alertas
+    const alertas = await this.prisma.alerta.findMany({
+      select: {
+        fchEmision: true,
+      },
+    });
+
+    // Inicializar array de 24 horas con 0
+    const alertasPorHora = Array.from({ length: 24 }, (_, hora) => ({
+      hora,
+      cantidad: 0,
+    }));
+
+    // Contar alertas por hora
+    alertas.forEach((alerta) => {
+      const hora = alerta.fchEmision.getHours();
+      alertasPorHora[hora].cantidad++;
+    });
+
+    return alertasPorHora;
+  }
+
+  // ===== MÉTODOS ORIGINALES =====
   /**
    * Obtener cantidad de alertas por usuario específico con filtro de fechas opcional
    */

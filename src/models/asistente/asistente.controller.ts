@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
 } from '@nestjs/common';
 import { AsistenteService } from './asistente.service';
 import { CreateAsistenteDto } from './dto/create-asistente.dto';
@@ -51,6 +52,7 @@ export class AsistenteController {
   @ApiOperation({ summary: 'Obtener asistentes por ID de alerta' })
   @ApiParam({ name: 'alertaId', type: Number })
   findByAlerta(@Param('alertaId') alertaId: string) {
+    console.log('Received request for asistentes of alertaId:', alertaId);
     return this.asistenteService.findByAlerta(+alertaId);
   }
 

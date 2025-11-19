@@ -9,6 +9,8 @@ services:
       - "${PORT}:${PORT}"
     env_file:
       - .env
+    environment:
+      - TZ=America/Argentina/Buenos_Aires
 
 
 # services:

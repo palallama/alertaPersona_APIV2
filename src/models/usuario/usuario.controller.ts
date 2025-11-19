@@ -87,4 +87,49 @@ export class UsuarioController {
     return this.usuarioService.obtenerHistorialAlertas(+id);
   }
 
+  @Patch(':id/validar')
+  @ApiOperation({ summary: 'Validar un usuario' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Usuario validado exitosamente' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  async validarUsuario(@Param('id') id: string) {
+    return this.usuarioService.validarUsuario(+id);
+  }
+
+  @Patch(':id/invalidar')
+  @ApiOperation({ summary: 'Invalidar un usuario' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Usuario invalidado exitosamente' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  async invalidarUsuario(@Param('id') id: string) {
+    return this.usuarioService.invalidarUsuario(+id);
+  }
+
+  @Patch(':id/quitar-validacion')
+  @ApiOperation({ summary: 'Quitar validación a un usuario' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Validación quitada exitosamente' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  async quitarValidacionUsuario(@Param('id') id: string) {
+    return this.usuarioService.quitarValidacionUsuario(+id);
+  }
+
+  @Patch(':id/activar')
+  @ApiOperation({ summary: 'Activar un usuario' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Usuario activado exitosamente' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  async activarUsuario(@Param('id') id: string) {
+    return this.usuarioService.activarUsuario(+id);
+  }
+
+  @Patch(':id/desactivar')
+  @ApiOperation({ summary: 'Desactivar un usuario' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Usuario desactivado exitosamente' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  async desactivarUsuario(@Param('id') id: string) {
+    return this.usuarioService.desactivarUsuario(+id);
+  }
+
 }

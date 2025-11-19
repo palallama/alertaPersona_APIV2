@@ -7,6 +7,7 @@ import {
   Post,
   Req,
   Request,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -36,25 +37,44 @@ export class AuthController {
     return this.authService.crearUsuario(createUsuarioDto);
   }
 
-  // @HttpCode(HttpStatus.OK)
-  // @Public() // Permite acceso sin JWT
   @Post('login')
-  // @ApiOperation({ summary: 'Iniciar sesión con email y contraseña' })
-  // @ApiBody({
-  //   schema: {
-  //     type: 'object',
-  //     properties: {
-  //       mail: { type: 'string', example: 'usuario@correo.com' },
-  //       password: { type: 'string', example: '12345678' },
-  //     },
-  //   },
-  // })
-  // @ApiResponse({
-  //   status: 200,
-  //   description: 'Inicio de sesión exitoso con token JWT',
-  // })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Iniciar sesión con email y contraseña' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        mail: { type: 'string', example: 'usuario@correo.com' },
+        password: { type: 'string', example: '12345678' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Inicio de sesión exitoso con token JWT',
+  })
   login(@Body() signInDto: Record<string, any>) {
     return this.authService.validateUser(signInDto.mail, signInDto.password);
+  }
+
+  @Post('loginAdmin')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Iniciar sesión con email y contraseña' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        mail: { type: 'string', example: 'usuario@correo.com' },
+        password: { type: 'string', example: '12345678' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Inicio de sesión exitoso con token JWT',
+  })
+  async loginAdmin(@Body() signInDto: Record<string, any>) {
+    return this.authService.validateUser(signInDto.mail, signInDto.password, true);
   }
 
   @UseGuards(JwtAuthGuard)

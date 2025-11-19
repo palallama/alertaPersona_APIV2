@@ -28,6 +28,90 @@ import { UpdateEstadisticaDto } from './dto/update-estadistica.dto';
 export class EstadisticasController {
   constructor(private readonly estadisticasService: EstadisticasService) {}
 
+  // ===== ENDPOINTS DASHBOARD =====
+  @Get('dashboard')
+  @ApiOperation({
+    summary: 'Obtener todas las estadísticas del dashboard',
+    description: 'Retorna todas las estadísticas del dashboard en una sola llamada',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Estadísticas completas del dashboard',
+  })
+  getDashboard() {
+    return this.estadisticasService.getDashboard();
+  }
+
+  @Get('dashboard/estadisticas')
+  @ApiOperation({
+    summary: 'Obtener estadísticas generales',
+    description: 'Total de usuarios, alertas y alertas canceladas',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Estadísticas generales',
+    schema: {
+      example: {
+        totalUsuarios: 1247,
+        totalAlertas: 3856,
+        alertasCanceladas: 142,
+      },
+    },
+  })
+  getDashboardEstadisticas() {
+    return this.estadisticasService.getDashboardEstadisticas();
+  }
+
+  @Get('dashboard/alertas-por-dia')
+  @ApiOperation({
+    summary: 'Obtener alertas por día',
+    description: 'Retorna las alertas de los últimos N días (por defecto 7)',
+  })
+  @ApiQuery({
+    name: 'dias',
+    required: false,
+    type: Number,
+    description: 'Cantidad de días a consultar',
+    example: 7,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Alertas agrupadas por día',
+    schema: {
+      example: [
+        {
+          fecha: '2025-11-12',
+          alertasSolucionadas: 65,
+          alertasCanceladas: 8,
+        },
+      ],
+    },
+  })
+  getDashboardAlertasPorDia(@Query('dias') dias?: string) {
+    const numDias = dias ? parseInt(dias) : 7;
+    return this.estadisticasService.getDashboardAlertasPorDia(numDias);
+  }
+
+  @Get('dashboard/alertas-por-hora')
+  @ApiOperation({
+    summary: 'Obtener alertas por hora',
+    description: 'Retorna la distribución de alertas por hora del día (0-23)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Alertas agrupadas por hora',
+    schema: {
+      example: [
+        { hora: 0, cantidad: 2 },
+        { hora: 1, cantidad: 1 },
+      ],
+    },
+  })
+  getDashboardAlertasPorHora() {
+    return this.estadisticasService.getDashboardAlertasPorHora();
+  }
+
+  // ===== ENDPOINTS ORIGINALES =====
   @Get('alertas/usuario/:usuarioId')
   @ApiOperation({
     summary: 'Obtener cantidad de alertas por usuario específico',

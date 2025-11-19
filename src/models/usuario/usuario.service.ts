@@ -149,4 +149,39 @@ export class UsuarioService extends PrismaClient implements OnModuleInit {
       data: { password: nuevaContrasenaHash },
     });
   }
+
+  async validarUsuario(id: number) {
+    return this.usuario.update({
+      where: { id },
+      data: { validado: true },
+    });
+  }
+
+  async invalidarUsuario(id: number) {
+    return this.usuario.update({
+      where: { id },
+      data: { validado: false },
+    });
+  }
+
+  async quitarValidacionUsuario(id: number) {
+    return this.usuario.update({
+      where: { id },
+      data: { validado: false },
+    });
+  }
+
+  async activarUsuario(id: number) {
+    return this.usuario.update({
+      where: { id },
+      data: { activo: true },
+    });
+  }
+
+  async desactivarUsuario(id: number) {
+    return this.usuario.update({
+      where: { id },
+      data: { activo: false },
+    });
+  }
 }

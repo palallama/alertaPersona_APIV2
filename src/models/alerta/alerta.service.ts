@@ -143,7 +143,7 @@ export class AlertaService extends PrismaClient implements OnModuleInit {
     for (const contacto of contactos) {
       const token = await this.usuarioAdicionalService.findOne(contacto.contactoId, 'notiToken');
       if (token) {
-        // this.firebaseService.sendNotificationAlerta(token.valor, data);
+        this.firebaseService.sendNotificationAlerta(token.valor, data);
         this.logger.log(`Notificación enviada al usuario ID: ${contacto.contactoId} con token: ${token.valor}`);
       }
     }

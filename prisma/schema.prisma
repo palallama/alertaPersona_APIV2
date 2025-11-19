@@ -30,6 +30,8 @@ model usuario {
   fechaCreacion DateTime  @default(now()) @db.DateTime(0)
   ultimoAcceso DateTime? @db.DateTime(0)
 
+  esAdmin      Boolean   @default(false)
+
   // Relaciones
   preferencias   usuarioPreferencia[]
   adicionales usuarioAdicional[]
