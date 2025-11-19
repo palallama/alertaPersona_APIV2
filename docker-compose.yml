@@ -4,10 +4,13 @@ services:
     build: .
     image: alertapersona
     container_name: alertapersona-api
+    restart: unless-stopped
     ports:
-      - "54001:54001"
+      - "${PORT}:${PORT}"
     env_file:
       - .env
+    environment:
+      - TZ=America/Argentina/Buenos_Aires
 
 
 # services:

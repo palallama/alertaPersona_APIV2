@@ -5,13 +5,15 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { FirebaseModule } from '../firebase/firebase.model';
 import { UsuarioModule } from '../usuario/usuario.module';
 import { UsuarioAdicionalModule } from '../usuario-adicional/usuario-adicional.module';
+import { ContactoModule } from '../contacto/contacto.module';
 
 @Module({
   imports: [
     PrismaModule,
     FirebaseModule,
     UsuarioModule,
-    UsuarioAdicionalModule
+    UsuarioAdicionalModule,
+    ContactoModule,
   ],
   controllers: [AlertaController],
   providers: [AlertaService],

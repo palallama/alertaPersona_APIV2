@@ -25,9 +25,12 @@ async function bootstrap() {
   
   // Configuración global de CORS
   app.enableCors({
-    origin: '*', //configService.get('CORS_ORIGIN') || 
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: true, // Acepta cualquier origen
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
     credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204
   });
 
   
@@ -39,6 +42,7 @@ async function bootstrap() {
     .addTag('Usuario')
     .addTag('Alerta')
     .addTag('Asistente')
+    .addTag('Contacto')
     .addTag('Usuario Adicional')
     .addTag('Notificaciones')
     .build();

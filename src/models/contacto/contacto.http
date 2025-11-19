@@ -1,0 +1,174 @@
+### Variables
+@baseUrl = http://localhost:4000/api
+@contactoId = 1
+@solicitudId = 4
+@usuarioId = 1
+@contactoUsuarioId = 1
+
+### === FLUJO DE SOLICITUDES DE CONTACTO ===
+
+### 1. Enviar solicitud de contacto (se crea en estado pendiente)
+POST {{baseUrl}}/contacto
+Content-Type: application/json
+
+{
+  "usuarioId": 1,
+  "contactoId": 2,
+  "activo": true
+}
+
+### 2. Ver solicitudes pendientes recibidas por un usuario
+GET {{baseUrl}}/contacto/solicitudes-pendientes/{{contactoUsuarioId}}
+
+### 3. Ver solicitudes enviadas por un usuario
+GET {{baseUrl}}/contacto/solicitudes-enviadas/{{usuarioId}}
+
+### 4. Aceptar una solicitud de contacto
+PATCH {{baseUrl}}/contacto/{{solicitudId}}/responder?usuarioId={{contactoUsuarioId}}
+Content-Type: application/json
+
+{
+  "estado": "A"
+}
+
+### 5. Rechazar una solicitud de contacto
+PATCH {{baseUrl}}/contacto/{{solicitudId}}/responder?usuarioId={{contactoUsuarioId}}
+Content-Type: application/json
+
+{
+  "estado": "R"
+}
+
+### === GESTIÓN DE CONTACTOS ===
+
+### 6. Obtener todos los contactos
+GET {{baseUrl}}/contacto
+
+### 7. Obtener todos los contactos (incluyendo eliminados)
+GET {{baseUrl}}/contacto?includeDeleted=true
+
+### 8. Obtener un contacto específico
+GET {{baseUrl}}/contacto/{{contactoId}}
+
+### 9. Obtener contactos de un usuario específico (todas las solicitudes enviadas)
+GET {{baseUrl}}/contacto/usuario/{{usuarioId}}
+
+### 10. Obtener contactos de un usuario específico (incluyendo eliminados)
+GET {{baseUrl}}/contacto/usuario/{{usuarioId}}?includeDeleted=true
+
+### 11. Obtener contactos ACEPTADOS y ACTIVOS de un usuario (para notificaciones de alertas)
+GET {{baseUrl}}/contacto/usuario/{{usuarioId}}/activos
+
+### 12. Actualizar un contacto
+PATCH {{baseUrl}}/contacto/{{contactoId}}
+Content-Type: application/json
+
+{
+  "activo": false
+}
+
+### 13. Activar/desactivar notificaciones de un contacto ACEPTADO
+PATCH {{baseUrl}}/contacto/{{contactoId}}/toggle-activo
+
+### 14. Eliminar un contacto (soft delete)
+DELETE {{baseUrl}}/contacto/{{contactoId}}
+
+### 15. Restaurar un contacto eliminado
+PATCH {{baseUrl}}/contacto/{{contactoId}}/restore
+
+### === CASOS DE ERROR Y VALIDACIONES ===
+
+### 16. Intentar agregarse a sí mismo como contacto (error)
+POST {{baseUrl}}/contacto
+Content-Type: application/json
+
+{
+  "usuarioId": 1,
+  "contactoId": 1
+}
+
+### 17. Crear solicitud con usuario inexistente (error)
+POST {{baseUrl}}/contacto
+Content-Type: application/json
+
+{
+  "usuarioId": 999,
+  "contactoId": 2
+}
+
+### 18. Crear solicitud duplicada (error)
+POST {{baseUrl}}/contacto
+Content-Type: application/json
+
+{
+  "usuarioId": 1,
+  "contactoId": 2,
+  "activo": true
+}
+
+### 19. Intentar responder solicitud con usuario incorrecto (error)
+PATCH {{baseUrl}}/contacto/{{solicitudId}}/responder?usuarioId=999
+Content-Type: application/json
+
+{
+  "estado": "A"
+}
+
+### 20. Intentar activar/desactivar contacto no aceptado (error)
+# Primero crear una solicitud rechazada y luego intentar activarla
+PATCH {{baseUrl}}/contacto/{{contactoId}}/toggle-activo
+
+### 21. Actualizar contacto para marcarlo como eliminado
+PATCH {{baseUrl}}/contacto/{{contactoId}}
+Content-Type: application/json
+
+{
+  "eliminado": true
+}
+
+### 22. Restaurar contacto mediante PATCH
+PATCH {{baseUrl}}/contacto/{{contactoId}}
+Content-Type: application/json
+
+{
+  "eliminado": false
+}
+
+### === BÚSQUEDA DE USUARIOS PARA CONTACTOS ===
+
+### 23. Buscar usuarios por nombre
+GET {{baseUrl}}/contacto/buscar-usuarios/{{usuarioId}}?q=roci
+
+### 24. Buscar usuarios por apellido
+GET {{baseUrl}}/contacto/buscar-usuarios/{{usuarioId}}?q=tor
+
+### 25. Buscar usuarios por email
+GET {{baseUrl}}/contacto/buscar-usuarios/{{usuarioId}}?q=gmail
+
+### 26. Buscar usuario por ID
+GET {{baseUrl}}/contacto/buscar-usuarios/{{usuarioId}}?q=2
+
+### 27. Búsqueda con término muy corto (error)
+GET {{baseUrl}}/contacto/buscar-usuarios/{{usuarioId}}?q=ju
+
+### 28. Búsqueda que incluye usuarios que ya son contactos
+GET {{baseUrl}}/contacto/buscar-usuarios/{{usuarioId}}?q=a
+
+### === CANCELAR SOLICITUDES ENVIADAS ===
+
+### 29. Cancelar una solicitud de contacto enviada (elimina el registro)
+DELETE {{baseUrl}}/contacto/cancelar-solicitud/{{solicitudId}}?usuarioId={{usuarioId}}
+
+### 30. Intentar cancelar solicitud con usuario incorrecto (error)
+DELETE {{baseUrl}}/contacto/cancelar-solicitud/{{solicitudId}}?usuarioId=999
+
+### 31. Intentar cancelar solicitud ya respondida (error)
+# Primero aceptar una solicitud y luego intentar cancelarla
+DELETE {{baseUrl}}/contacto/cancelar-solicitud/{{solicitudId}}?usuarioId={{usuarioId}}
+
+### === FLUJO COMPLETO DE EJEMPLO ===
+### Usuario 1 envía solicitud a Usuario 2
+### Usuario 2 ve sus solicitudes pendientes  
+### Usuario 2 acepta la solicitud
+### Usuario 1 puede ver Usuario 2 en sus contactos activos
+### Cuando Usuario 1 emite alerta, se notifica a Usuario 2

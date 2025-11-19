@@ -30,12 +30,18 @@ model usuario {
   fechaCreacion DateTime  @default(now()) @db.DateTime(0)
   ultimoAcceso DateTime? @db.DateTime(0)
 
+  esAdmin      Boolean   @default(false)
+
   // Relaciones
   preferencias   usuarioPreferencia[]
   adicionales usuarioAdicional[]
   alertas       alerta[]
   asistentes     asistente[]
   notificaciones notificacion[]
+  // Contactos donde este usuario es el propietario
+  contactos      contacto[] @relation("UsuarioContactos")
+  // Contactos donde este usuario es el contacto de otros
+  esContactoDe   contacto[] @relation("ContactoUsuario")
 
   // Índices
   @@index([activo])
@@ -99,4 +105,30 @@ model usuarioAdicional {
   valor String
 
   @@id([usuarioId, clave])
+}
+
+model contacto {
+  id Int @default(autoincrement())
+  usuarioId Int // El usuario que tiene el contacto
+  contactoId Int // El usuario que es el contacto
+  estado String @default("P") @db.Char(1) // P=Pendiente, A=Aceptado, R=Rechazado
+  activo Boolean @default(true) // Si se notifica a este contacto o no
+  eliminado Boolean @default(false) // Soft delete
+  fchCreacion DateTime @default(now()) @db.DateTime(0)
+  fchActualizacion DateTime @updatedAt @db.DateTime(0)
+  fchEliminacion DateTime? @db.DateTime(0) // Fecha de eliminación lógica
+  fchRespuesta DateTime? @db.DateTime(0) // Fecha cuando aceptó/rechazó
+
+  // Relaciones
+  usuario usuario @relation("UsuarioContactos", fields: [usuarioId], references: [id])
+  contactoUsuario usuario @relation("ContactoUsuario", fields: [contactoId], references: [id])
+
+  // Índices
+  @@id(id)
+  @@unique([usuarioId, contactoId]) // Un usuario no puede tener el mismo contacto duplicado
+  @@index([usuarioId])
+  @@index([contactoId])
+  @@index([estado])
+  @@index([activo])
+  @@index([eliminado])
 }
