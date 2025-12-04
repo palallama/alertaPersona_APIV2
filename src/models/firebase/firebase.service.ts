@@ -22,8 +22,8 @@ export class FirebaseService {
   }
 
   private loadCredentials(): admin.ServiceAccount {
-    // Ruta del archivo local
-    const filePath = join(__dirname, 'firebase-credentials.json');
+    // Ruta del archivo local (desde la raíz del proyecto)
+    const filePath = join(process.cwd(), 'src', 'models', 'firebase', 'firebase-credentials.json');
 
     // 1) Si existe el archivo → lo usamos
     if (existsSync(filePath)) {
