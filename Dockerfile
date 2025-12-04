@@ -12,6 +12,7 @@ RUN npm cache clean --force
 RUN npm install --legacy-peer-deps
 RUN npm uninstall bcrypt --legacy-peer-deps
 RUN npm install bcrypt --legacy-peer-deps
+RUN npm install nanoid --legacy-peer-deps
 
 # Copy the rest of the application code
 COPY . .
