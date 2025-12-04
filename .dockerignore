@@ -1,1 +1,14 @@
 node_modules
+dist
+npm-debug.log
+.env
+.env.local
+.git
+.gitignore
+README.md
+SECURITY-AUDIT.md
+.vscode
+.idea
+*.log
+coverage
+.nyc_output
