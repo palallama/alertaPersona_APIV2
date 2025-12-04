@@ -20,5 +20,7 @@ COPY . .
 RUN npx prisma generate
 COPY prisma ./node_modules/@prisma/client
 
+RUN echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /app/src/models/firebase/firebase-config.json
+
 # Command to run the app
 CMD [  "npm", "run", "start:migrate:prod" ]
