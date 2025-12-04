@@ -1,6 +1,5 @@
-# @host = http://localhost
-# @port = 4000
-@host = https://alerta-persona-api.julitorossian.dev
+@host = http://localhost:4000
+# @host = https://alerta-persona-api.julitorossian.dev
 
 # @baseUrl = {{host}}:{{port}}/api/
 @baseUrl = {{host}}/api
@@ -36,3 +35,13 @@ Authorization: Bearer {{token}}
     "nuevaContrasena": "987654321",
     "contrasenaActual": "123456789"
 }
+
+###
+
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiSnVsaWFuIiwiZW1haWwiOiJqdWxpYW4udG9yb3NzaWFuQG91dGxvb2suY29tIiwiaWF0IjoxNzY0NzE5Njg4LCJleHAiOjE3NjUzMjQ0ODh9.2H-5IDWiY4FmC9lpdPXlkL3y_la7XkUlzjNmMZWZ6hc"
+}
+

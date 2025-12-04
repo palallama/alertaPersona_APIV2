@@ -4,6 +4,7 @@ import * as admin from 'firebase-admin';
 // import * as serviceAccount from './firebase-credentials.json';
 import serviceAccount from './firebase-credentials.json';
 import { EmisionAlerta } from './templates/EmisionAlerta';
+import { SolicitudContacto } from './templates/SolicitudContacto';
 
 @Injectable()
 export class FirebaseService {
@@ -34,6 +35,27 @@ export class FirebaseService {
   async sendNotificationAlerta(token:string, data:any) {
 
     const notificaction:EmisionAlerta = new EmisionAlerta();
+
+    const message = {
+      notification: {
+        ...notificaction
+      },
+      token,
+      data: {
+        ...data
+      }
+    };
+    try {
+      await admin.messaging().send(message);
+    } catch (error) {
+      console.error("Error sending notification:", error);
+      console.error("message:", message);
+    }
+  }
+
+  async sendNotificationSolicitudContacto(token:string, data:any) {
+
+    const notificaction:SolicitudContacto = new SolicitudContacto();
 
     const message = {
       notification: {

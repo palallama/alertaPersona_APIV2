@@ -55,7 +55,6 @@ export class AsistenteService extends PrismaClient implements OnModuleInit {
   }
 
   async findByAlerta(alertaId: number) {
-    console.log('Fetching asistentes for alertaId:', alertaId);
     const asistentes = await this.asistente.findMany({
       where: { alertaId },
       include: {
@@ -69,7 +68,6 @@ export class AsistenteService extends PrismaClient implements OnModuleInit {
         },
       },
     });
-    console.log(`Found ${asistentes.length} asistentes for alertaId:`, alertaId);
     return asistentes;
   }
 

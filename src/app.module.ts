@@ -11,7 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './models/auth/auth.module';
 import { MailModule } from './models/mail/mail.module';
 import { SseController } from './models/sse/sse.controller';
-import { FirebaseService } from './models/firebase/firebase.service';
+import { FirebaseModule } from './models/firebase/firebase.module';
 import { UsuarioAdicionalService } from './models/usuario-adicional/usuario-adicional.service';
 import { UsuarioAdicionalModule } from './models/usuario-adicional/usuario-adicional.module';
 import { ContactoModule } from './models/contacto/contacto.module';
@@ -31,12 +31,13 @@ import { EstadisticasModule } from './models/estadisticas/estadisticas.module';
     UsuarioPreferenciaModule,
     AuthModule,
     MailModule,
+    FirebaseModule,
     UsuarioAdicionalModule,
     ContactoModule,
     EstadisticasModule,
   ],
   controllers: [SseController],
-  providers: [FirebaseService, UsuarioAdicionalService],
+  providers: [UsuarioAdicionalService],
 })
 export class AppModule  implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

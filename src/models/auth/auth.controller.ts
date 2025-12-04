@@ -23,6 +23,7 @@ import {
 import { ResetearContrasenaDto, SolicitarCodigoDto, VerificarCodigoDto } from './dto/verificar-codigo.dto';
 import { CreateUsuarioDto } from '../usuario/dto/create-usuario.dto';
 import { Public } from './decorators/public.decorator';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -158,5 +159,23 @@ export class AuthController {
       codigo,
       nuevaContrasena,
     );
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refrescar access token usando refresh token' })
+  @ApiBody({ type: RefreshTokenDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Nuevo access token generado exitosamente',
+    schema: {
+      example: {
+        access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+      }
+    }
+  })
+  @ApiResponse({ status: 401, description: 'Refresh token inválido o expirado' })
+  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshAccessToken(refreshTokenDto.refresh_token);
   }
 }
