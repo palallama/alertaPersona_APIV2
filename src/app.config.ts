@@ -14,4 +14,5 @@ export default registerAs('environment', () => ({
   mail_user: getEnv('MAIL_USER'),
   mail_pass: getEnv('MAIL_PASS'),
   frontend_url: getEnv('FRONTEND_URL'),
+  firebase_credentials: getEnv('FIREBASE_CREDENTIALS'),
 }));
