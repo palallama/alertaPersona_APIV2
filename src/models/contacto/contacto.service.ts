@@ -1,12 +1,29 @@
 import { Injectable, Logger, OnModuleInit, BadRequestException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 import { CreateContactoDto } from './dto/create-contacto.dto';
 import { UpdateContactoDto } from './dto/update-contacto.dto';
 import { ResponderSolicitudContactoDto } from './dto/responder-solicitud-contacto.dto';
+import { CrearInvitacionDto } from './dto/crear-invitacion.dto';
+import { MailService } from '../mail/mail.service';
+import { FirebaseService } from '../firebase/firebase.service';
+import { UsuarioAdicionalService } from '../usuario-adicional/usuario-adicional.service';
+import { nanoid } from 'nanoid';
 
 @Injectable()
 export class ContactoService extends PrismaClient implements OnModuleInit {
   private readonly logger = new Logger('ContactoService');
+  private readonly frontendUrl: string;
+
+  constructor(
+    private readonly mailService: MailService,
+    private readonly firebaseService: FirebaseService,
+    private readonly usuarioAdicionalService: UsuarioAdicionalService,
+    private readonly configService: ConfigService,
+  ) {
+    super();
+    this.frontendUrl = this.configService.get<string>('environment.frontend_url') || 'https://alertapersona.com';
+  }
 
   onModuleInit() {
     this.$connect();
@@ -51,7 +68,7 @@ export class ContactoService extends PrismaClient implements OnModuleInit {
     }
 
     // Crear solicitud en estado pendiente
-    return this.contacto.create({
+    const solicitud = await this.contacto.create({
       data: {
         ...createContactoDto,
         estado: 'P' // Siempre se crea en estado pendiente
@@ -76,6 +93,11 @@ export class ContactoService extends PrismaClient implements OnModuleInit {
         }
       }
     });
+
+    // Enviar notificación push al usuario que recibió la solicitud
+    this.enviarNotificacionSolicitud(solicitud.id, solicitud.contactoId, solicitud.usuario);
+
+    return solicitud;
   }
 
   async responderSolicitud(id: number, respuesta: ResponderSolicitudContactoDto, usuarioQueResponde: number) {
@@ -496,5 +518,373 @@ export class ContactoService extends PrismaClient implements OnModuleInit {
         }
       }
     };
+  }
+
+  // ==================== INVITACIONES ====================
+
+  /**
+   * Envía una invitación por email a un usuario que no está registrado
+   */
+  async enviarInvitacion(crearInvitacionDto: CrearInvitacionDto) {
+    // Verificar que el usuario que envía la invitación existe
+    const usuario = await this.usuario.findUnique({
+      where: { id: crearInvitacionDto.usuarioId }
+    });
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con ID ${crearInvitacionDto.usuarioId} no encontrado`);
+    }
+
+    // Verificar que no exista un usuario registrado con ese email
+    const usuarioExistente = await this.usuario.findUnique({
+      where: { mail: crearInvitacionDto.email }
+    });
+
+    if (usuarioExistente) {
+      throw new BadRequestException('Ya existe un usuario registrado con este email. Busca al usuario para enviarte una solicitud de contacto.');
+    }
+
+    // Verificar que no haya una invitación pendiente a este email
+    const invitacionPendiente = await this.invitacion.findFirst({
+      where: {
+        usuarioId: crearInvitacionDto.usuarioId,
+        email: crearInvitacionDto.email,
+        estado: 'P',
+        fchExpiracion: {
+          gte: new Date() // Que no haya expirado
+        }
+      }
+    });
+
+    if (invitacionPendiente) {
+      throw new BadRequestException('Ya existe una invitación pendiente para este email');
+    }
+
+    // Generar código único para la invitación
+    const codigo = `user_${nanoid(10)}`;
+
+    // Fecha de expiración (7 días desde ahora)
+    const fchExpiracion = new Date();
+    fchExpiracion.setDate(fchExpiracion.getDate() + 7);
+
+    // Crear la invitación
+    const invitacion = await this.invitacion.create({
+      data: {
+        usuarioId: crearInvitacionDto.usuarioId,
+        email: crearInvitacionDto.email,
+        telefono: crearInvitacionDto.telefono,
+        codigo,
+        mensaje: crearInvitacionDto.mensaje,
+        fchExpiracion,
+        estado: 'P'
+      },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            mail: true
+          }
+        }
+      }
+    });
+
+    // Generar link de invitación
+    const link = `${this.frontendUrl}/invitacion/${codigo}`;
+
+    // Enviar email de invitación
+    await this.mailService.enviarInvitacionContacto(
+      crearInvitacionDto.email,
+      {
+        nombreRemitente: `${usuario.nombre} ${usuario.apellido}`,
+        mensaje: crearInvitacionDto.mensaje,
+        link,
+        codigo
+      }
+    );
+
+    return {
+      ...invitacion,
+      link
+    };
+  }
+
+  /**
+   * Obtiene las invitaciones enviadas por un usuario
+   */
+  async obtenerInvitacionesEnviadas(usuarioId: number, includeExpired: boolean = false) {
+    const where: any = {
+      usuarioId
+    };
+
+    if (!includeExpired) {
+      where.AND = [
+        { estado: { in: ['P', 'A'] } },
+        {
+          OR: [
+            { estado: 'A' }, // Las aceptadas siempre se muestran
+            {
+              estado: 'P',
+              fchExpiracion: { gte: new Date() } // Las pendientes solo si no expiraron
+            }
+          ]
+        }
+      ];
+    }
+
+    const invitaciones = await this.invitacion.findMany({
+      where,
+      orderBy: {
+        fchCreacion: 'desc'
+      }
+    });
+
+    // Agregar el link a cada invitación
+    return invitaciones.map(inv => ({
+      ...inv,
+      link: `${this.frontendUrl}/invitacion/${inv.codigo}`
+    }));
+  }
+
+  /**
+   * Valida un código de invitación y retorna la información
+   */
+  async validarCodigoInvitacion(codigo: string) {
+    const invitacion = await this.invitacion.findUnique({
+      where: { codigo },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            mail: true
+          }
+        }
+      }
+    });
+
+    if (!invitacion) {
+      throw new NotFoundException('Código de invitación no válido');
+    }
+
+    // Verificar si expiró
+    if (invitacion.fchExpiracion < new Date()) {
+      // Marcar como expirada si está pendiente
+      if (invitacion.estado === 'P') {
+        await this.invitacion.update({
+          where: { id: invitacion.id },
+          data: { estado: 'E' }
+        });
+      }
+      throw new BadRequestException('Esta invitación ha expirado');
+    }
+
+    // Verificar el estado
+    if (invitacion.estado !== 'P') {
+      const estadoTexto = {
+        'A': 'ya fue aceptada',
+        'R': 'fue rechazada',
+        'E': 'ha expirado'
+      };
+      throw new BadRequestException(`Esta invitación ${estadoTexto[invitacion.estado] || 'no está disponible'}`);
+    }
+
+    return {
+      ...invitacion,
+      link: `${this.frontendUrl}/invitacion/${invitacion.codigo}`
+    };
+  }
+
+  /**
+   * Acepta una invitación y crea la relación de contacto
+   * Se llama cuando un usuario se registra o inicia sesión con el código de invitación
+   */
+  async aceptarInvitacion(codigo: string, usuarioRegistradoId: number) {
+    const invitacion = await this.validarCodigoInvitacion(codigo);
+
+    // Verificar que el usuario que acepta existe
+    const usuarioRegistrado = await this.usuario.findUnique({
+      where: { id: usuarioRegistradoId }
+    });
+
+    if (!usuarioRegistrado) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    // Verificar que el email coincida SOLO si la invitación tiene email específico
+    // (las invitaciones genéricas tienen email vacío)
+    if (invitacion.email && invitacion.email !== '' && usuarioRegistrado.mail !== invitacion.email) {
+      throw new BadRequestException('El email del usuario no coincide con la invitación');
+    }
+
+    // Verificar que no se esté agregando a sí mismo
+    if (usuarioRegistradoId === invitacion.usuarioId) {
+      throw new BadRequestException('No puedes aceptar tu propia invitación');
+    }
+
+    // Verificar que no exista ya una relación de contacto entre estos usuarios
+    const contactoExistente = await this.contacto.findFirst({
+      where: {
+        OR: [
+          {
+            usuarioId: invitacion.usuarioId,
+            contactoId: usuarioRegistradoId,
+            eliminado: false
+          },
+          {
+            usuarioId: usuarioRegistradoId,
+            contactoId: invitacion.usuarioId,
+            eliminado: false
+          }
+        ]
+      }
+    });
+
+    if (contactoExistente) {
+      throw new BadRequestException('Ya existe una relación de contacto entre estos usuarios');
+    }
+
+    // Marcar la invitación como aceptada
+    await this.invitacion.update({
+      where: { id: invitacion.id },
+      data: {
+        estado: 'A',
+        fchRespuesta: new Date(),
+        usuarioRegistradoId,
+        // Si es invitación genérica, actualizar con el email del usuario que aceptó
+        ...(invitacion.email === '' ? { email: usuarioRegistrado.mail } : {})
+      }
+    });
+
+    // Crear la relación de contacto bidireccional
+    // Usuario que invitó -> Usuario invitado
+    const contacto1 = await this.contacto.create({
+      data: {
+        usuarioId: invitacion.usuarioId,
+        contactoId: usuarioRegistradoId,
+        estado: 'A', // Automáticamente aceptado
+        activo: true
+      }
+    });
+
+    // Usuario invitado -> Usuario que invitó
+    const contacto2 = await this.contacto.create({
+      data: {
+        usuarioId: usuarioRegistradoId,
+        contactoId: invitacion.usuarioId,
+        estado: 'A', // Automáticamente aceptado
+        activo: true
+      }
+    });
+
+    return {
+      message: 'Invitación aceptada exitosamente',
+      invitacion,
+      contactos: [contacto1, contacto2]
+    };
+  }
+
+  /**
+   * Cancela/elimina una invitación
+   */
+  async cancelarInvitacion(invitacionId: number, usuarioId: number) {
+    const invitacion = await this.invitacion.findUnique({
+      where: { id: invitacionId }
+    });
+
+    if (!invitacion) {
+      throw new NotFoundException('Invitación no encontrada');
+    }
+
+    // Verificar que quien cancela es quien la envió
+    if (invitacion.usuarioId !== usuarioId) {
+      throw new BadRequestException('Solo puedes cancelar invitaciones que enviaste');
+    }
+
+    // Solo se pueden cancelar invitaciones pendientes
+    if (invitacion.estado !== 'P') {
+      throw new BadRequestException('Solo puedes cancelar invitaciones pendientes');
+    }
+
+    // Eliminar la invitación
+    await this.invitacion.delete({
+      where: { id: invitacionId }
+    });
+
+    return {
+      message: 'Invitación cancelada exitosamente'
+    };
+  }
+
+  /**
+   * Genera un link de invitación para compartir (sin enviar email)
+   */
+  async generarLinkInvitacion(usuarioId: number) {
+    // Verificar que el usuario existe
+    const usuario = await this.usuario.findUnique({
+      where: { id: usuarioId }
+    });
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con ID ${usuarioId} no encontrado`);
+    }
+
+    // Generar código único
+    const codigo = `user_${nanoid(10)}`;
+
+    // Fecha de expiración (30 días para links generales)
+    const fchExpiracion = new Date();
+    fchExpiracion.setDate(fchExpiracion.getDate() + 30);
+
+    // Crear invitación genérica (sin email específico)
+    const invitacion = await this.invitacion.create({
+      data: {
+        usuarioId,
+        email: '', // Email vacío para invitaciones genéricas
+        codigo,
+        fchExpiracion,
+        estado: 'P',
+        mensaje: 'Invitación para agregar contacto'
+      }
+    });
+
+    const link = `${this.frontendUrl}/invitacion/${codigo}`;
+
+    return {
+      ...invitacion,
+      link,
+      qrData: link // Este link se puede usar para generar QR en el frontend
+    };
+  }
+
+  /**
+   * Envía notificación push al usuario que recibió la solicitud de contacto
+   */
+  private async enviarNotificacionSolicitud(
+    solicitudId: number, 
+    contactoId: number, 
+    usuarioSolicitante: { nombre: string; apellido: string }
+  ) {
+    try {
+      const data = {
+        solicitud: String(solicitudId),
+        motivo: 'S' // S = Solicitud de contacto
+      };
+
+      // Obtener el token del usuario que recibió la solicitud
+      const token = await this.usuarioAdicionalService.findOne(contactoId, 'notiToken');
+      
+      if (token) {
+        await this.firebaseService.sendNotificationSolicitudContacto(token.valor, data);
+        this.logger.log(`Notificación de solicitud enviada al usuario ID: ${contactoId} de ${usuarioSolicitante.nombre} ${usuarioSolicitante.apellido}`);
+      } else {
+        this.logger.warn(`Usuario ID: ${contactoId} no tiene token de notificación registrado`);
+      }
+    } catch (error) {
+      this.logger.error(`Error al enviar notificación de solicitud: ${error.message}`);
+      // No lanzamos el error para que no afecte la creación de la solicitud
+    }
   }
 }

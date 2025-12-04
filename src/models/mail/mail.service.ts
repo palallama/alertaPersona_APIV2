@@ -17,4 +17,26 @@ export class MailService {
         },
       });
     }
+
+    async enviarInvitacionContacto(
+      email: string, 
+      datos: {
+        nombreRemitente: string;
+        mensaje?: string;
+        link: string;
+        codigo: string;
+      }
+    ) {
+      await this.mailerService.sendMail({
+        to: email,
+        subject: `${datos.nombreRemitente} te invita a unirte a AlertaPersona 👥`,
+        template: 'invitacion',
+        context: {
+          nombreRemitente: datos.nombreRemitente,
+          mensaje: datos.mensaje,
+          link: datos.link,
+          codigo: datos.codigo
+        },
+      });
+    }
 }

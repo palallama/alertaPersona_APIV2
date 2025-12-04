@@ -13,4 +13,5 @@ export default registerAs('environment', () => ({
   url: getEnv('DATABASE_URL'),
   mail_user: getEnv('MAIL_USER'),
   mail_pass: getEnv('MAIL_PASS'),
+  frontend_url: getEnv('FRONTEND_URL'),
 }));

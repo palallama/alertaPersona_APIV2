@@ -172,3 +172,140 @@ DELETE {{baseUrl}}/contacto/cancelar-solicitud/{{solicitudId}}?usuarioId={{usuar
 ### Usuario 2 acepta la solicitud
 ### Usuario 1 puede ver Usuario 2 en sus contactos activos
 ### Cuando Usuario 1 emite alerta, se notifica a Usuario 2
+
+
+### ============================================
+### === SISTEMA DE INVITACIONES ===
+### ============================================
+
+### Variables para invitaciones
+@emailInvitado = amigo@example.com
+@codigoInvitacion = user_eogxeqesx
+@usuarioInvitadorId = 1
+@usuarioInvitadoId = 2
+@invitacionId = 1
+
+### === ENVIAR INVITACIONES ===
+
+### 32. Enviar invitación por email a usuario no registrado
+POST {{baseUrl}}/contacto/invitacion
+Content-Type: application/json
+
+{
+  "usuarioId": {{usuarioInvitadorId}},
+  "email": "{{emailInvitado}}",
+  "mensaje": "¡Únete a AlertaPersona para que podamos estar conectados en caso de emergencia!"
+}
+
+### 33. Enviar invitación con teléfono (para implementación futura)
+POST {{baseUrl}}/contacto/invitacion
+Content-Type: application/json
+
+{
+  "usuarioId": {{usuarioInvitadorId}},
+  "email": "julitoro2009@gmail.com",
+  "mensaje": "Te invito a AlertaPersona"
+}
+
+### 34. Enviar invitación sin mensaje personalizado
+POST {{baseUrl}}/contacto/invitacion
+Content-Type: application/json
+
+{
+  "usuarioId": {{usuarioInvitadorId}},
+  "email": "nuevo@example.com"
+}
+
+### === OBTENER INVITACIONES ===
+
+### 35. Ver invitaciones enviadas por un usuario (solo pendientes y aceptadas)
+GET {{baseUrl}}/contacto/invitaciones/{{usuarioInvitadorId}}
+
+### 36. Ver invitaciones incluyendo expiradas
+GET {{baseUrl}}/contacto/invitaciones/{{usuarioInvitadorId}}?includeExpired=true
+
+### === VALIDAR Y ACEPTAR INVITACIONES ===
+
+### 37. Validar un código de invitación (antes de aceptar)
+POST {{baseUrl}}/contacto/invitacion/validar
+Content-Type: application/json
+
+{
+  "codigo": "user_3LXuFT_Jy5"
+}
+
+### 38. Aceptar una invitación (crear contactos bidireccionales)
+POST {{baseUrl}}/contacto/invitacion/{{codigoInvitacion}}/aceptar?usuarioId={{usuarioInvitadoId}}
+
+### === GENERAR LINKS Y QR ===
+
+### 39. Generar link/QR genérico para compartir (sin email específico)
+POST {{baseUrl}}/contacto/invitacion/generar-link/{{usuarioInvitadorId}}
+
+### === CANCELAR INVITACIONES ===
+
+### 40. Cancelar una invitación pendiente
+DELETE {{baseUrl}}/contacto/invitacion/{{invitacionId}}?usuarioId={{usuarioInvitadorId}}
+
+### === CASOS DE ERROR - INVITACIONES ===
+
+### 41. Intentar invitar a un email ya registrado (error)
+POST {{baseUrl}}/contacto/invitacion
+Content-Type: application/json
+
+{
+  "usuarioId": {{usuarioInvitadorId}},
+  "email": "rocio@gmail.com"
+}
+
+### 42. Intentar crear invitación duplicada al mismo email (error)
+POST {{baseUrl}}/contacto/invitacion
+Content-Type: application/json
+
+{
+  "usuarioId": {{usuarioInvitadorId}},
+  "email": "{{emailInvitado}}"
+}
+
+### 43. Validar código de invitación inexistente (error)
+POST {{baseUrl}}/contacto/invitacion/validar
+Content-Type: application/json
+
+{
+  "codigo": "codigo_invalido_123"
+}
+
+### 44. Validar código de invitación expirada (error)
+POST {{baseUrl}}/contacto/invitacion/validar
+Content-Type: application/json
+
+{
+  "codigo": "user_expirado123"
+}
+
+### 45. Aceptar invitación con email que no coincide (error)
+# El usuario con ID 2 tiene email diferente al de la invitación
+POST {{baseUrl}}/contacto/invitacion/{{codigoInvitacion}}/aceptar?usuarioId=999
+
+### 46. Cancelar invitación de otro usuario (error)
+DELETE {{baseUrl}}/contacto/invitacion/{{invitacionId}}?usuarioId=999
+
+### 47. Cancelar invitación ya aceptada (error)
+DELETE {{baseUrl}}/contacto/invitacion/{{invitacionId}}?usuarioId={{usuarioInvitadorId}}
+
+### === FLUJO COMPLETO DE INVITACIÓN ===
+# 1. Usuario 1 envía invitación por email a "amigo@example.com"
+# 2. Se genera código único: user_abc123xyz
+# 3. Se envía email con link: https://alertapersona.com/invitacion/user_abc123xyz
+# 4. Usuario nuevo abre link y se registra con email "amigo@example.com"
+# 5. Sistema valida código y email coinciden
+# 6. Se crean automáticamente 2 contactos (Usuario1→NuevoUsuario y NuevoUsuario→Usuario1)
+# 7. Ambos quedan conectados automáticamente
+
+### === FLUJO CON QR ===
+# 1. Usuario 1 genera link genérico sin email específico
+# 2. Obtiene: { link: "https://alertapersona.com/invitacion/user_qr123", qrData: "..." }
+# 3. Frontend genera QR con ese link
+# 4. Otro usuario escanea QR y accede al link
+# 5. Se registra o inicia sesión
+# 6. Sistema conecta ambos usuarios automáticamente

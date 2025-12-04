@@ -5,8 +5,11 @@ import { UpdateContactoDto } from './dto/update-contacto.dto';
 import { ResponderSolicitudContactoDto } from './dto/responder-solicitud-contacto.dto';
 import { UsuarioBusquedaDto } from './dto/usuario-busqueda.dto';
 import { CancelarSolicitudResponseDto } from './dto/cancelar-solicitud-response.dto';
+import { CrearInvitacionDto } from './dto/crear-invitacion.dto';
+import { ValidarInvitacionDto } from './dto/validar-invitacion.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { Contacto } from './entities/contacto.entity';
+import { Invitacion } from './entities/invitacion.entity';
 
 @ApiTags('contactos')
 @Controller('contacto')
@@ -266,5 +269,139 @@ export class ContactoController {
     @Query('usuarioId', ParseIntPipe) usuarioQueCancela: number
   ) {
     return this.contactoService.cancelarSolicitud(id, usuarioQueCancela);
+  }
+
+  // ==================== ENDPOINTS DE INVITACIONES ====================
+
+  @Post('invitacion')
+  @ApiOperation({ summary: 'Enviar invitación por email a un usuario no registrado' })
+  @ApiBody({ type: CrearInvitacionDto })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'Invitación enviada exitosamente',
+    type: Invitacion 
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'El usuario ya está registrado o ya existe una invitación pendiente' 
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Usuario que envía la invitación no encontrado' 
+  })
+  enviarInvitacion(@Body() crearInvitacionDto: CrearInvitacionDto) {
+    return this.contactoService.enviarInvitacion(crearInvitacionDto);
+  }
+
+  @Get('invitaciones/:usuarioId')
+  @ApiOperation({ summary: 'Obtener invitaciones enviadas por un usuario' })
+  @ApiParam({ name: 'usuarioId', description: 'ID del usuario que envió las invitaciones' })
+  @ApiQuery({ 
+    name: 'includeExpired', 
+    required: false, 
+    type: Boolean,
+    description: 'Incluir invitaciones expiradas' 
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de invitaciones enviadas',
+    type: [Invitacion] 
+  })
+  obtenerInvitacionesEnviadas(
+    @Param('usuarioId', ParseIntPipe) usuarioId: number,
+    @Query('includeExpired') includeExpired?: string
+  ) {
+    const includeExpiredBool = includeExpired === 'true';
+    return this.contactoService.obtenerInvitacionesEnviadas(usuarioId, includeExpiredBool);
+  }
+
+  @Post('invitacion/validar')
+  @ApiOperation({ summary: 'Validar un código de invitación' })
+  @ApiBody({ type: ValidarInvitacionDto })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Invitación válida',
+    type: Invitacion 
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Invitación expirada o no disponible' 
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Código de invitación no válido' 
+  })
+  validarInvitacion(@Body() validarDto: ValidarInvitacionDto) {
+    return this.contactoService.validarCodigoInvitacion(validarDto.codigo);
+  }
+
+  @Post('invitacion/:codigo/aceptar')
+  @ApiOperation({ summary: 'Aceptar una invitación y crear la relación de contacto' })
+  @ApiParam({ name: 'codigo', description: 'Código único de invitación' })
+  @ApiQuery({ 
+    name: 'usuarioId', 
+    description: 'ID del usuario que acepta la invitación',
+    type: Number
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Invitación aceptada y contactos creados exitosamente'
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'El email no coincide o la invitación no está disponible' 
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Invitación o usuario no encontrado' 
+  })
+  aceptarInvitacion(
+    @Param('codigo') codigo: string,
+    @Query('usuarioId', ParseIntPipe) usuarioId: number
+  ) {
+    return this.contactoService.aceptarInvitacion(codigo, usuarioId);
+  }
+
+  @Delete('invitacion/:id')
+  @ApiOperation({ summary: 'Cancelar una invitación pendiente' })
+  @ApiParam({ name: 'id', description: 'ID de la invitación' })
+  @ApiQuery({ 
+    name: 'usuarioId', 
+    description: 'ID del usuario que envió la invitación',
+    type: Number
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Invitación cancelada exitosamente'
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Solo puedes cancelar invitaciones que enviaste o que estén pendientes' 
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Invitación no encontrada' 
+  })
+  cancelarInvitacion(
+    @Param('id', ParseIntPipe) invitacionId: number,
+    @Query('usuarioId', ParseIntPipe) usuarioId: number
+  ) {
+    return this.contactoService.cancelarInvitacion(invitacionId, usuarioId);
+  }
+
+  @Post('invitacion/generar-link/:usuarioId')
+  @ApiOperation({ summary: 'Generar link/QR de invitación genérico para compartir' })
+  @ApiParam({ name: 'usuarioId', description: 'ID del usuario que genera el link' })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'Link de invitación generado exitosamente',
+    type: Invitacion
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Usuario no encontrado' 
+  })
+  generarLinkInvitacion(@Param('usuarioId', ParseIntPipe) usuarioId: number) {
+    return this.contactoService.generarLinkInvitacion(usuarioId);
   }
 }

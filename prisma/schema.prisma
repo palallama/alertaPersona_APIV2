@@ -42,6 +42,8 @@ model usuario {
   contactos      contacto[] @relation("UsuarioContactos")
   // Contactos donde este usuario es el contacto de otros
   esContactoDe   contacto[] @relation("ContactoUsuario")
+  // Invitaciones enviadas
+  invitacionesEnviadas invitacion[] @relation("InvitacionesEnviadas")
 
   // Índices
   @@index([activo])
@@ -131,4 +133,29 @@ model contacto {
   @@index([estado])
   @@index([activo])
   @@index([eliminado])
+}
+
+// Tabla para invitaciones de contacto por email
+model invitacion {
+  id Int @default(autoincrement())
+  usuarioId Int // Usuario que envía la invitación
+  email String @db.VarChar(255) // Email del invitado
+  telefono String? @db.VarChar(20) // Teléfono del invitado (opcional, para futuro)
+  codigo String @unique @db.VarChar(50) // Código único de invitación para el link/QR
+  estado String @default("P") @db.Char(1) // P=Pendiente, A=Aceptada, R=Rechazada, E=Expirada
+  mensaje String? @db.Text // Mensaje personalizado opcional
+  fchCreacion DateTime @default(now()) @db.DateTime(0)
+  fchExpiracion DateTime @db.DateTime(0) // Fecha de expiración (ej: 7 días)
+  fchRespuesta DateTime? @db.DateTime(0) // Cuando aceptó/rechazó
+  usuarioRegistradoId Int? // Usuario que aceptó la invitación (si se registró)
+  
+  // Relaciones
+  usuario usuario @relation("InvitacionesEnviadas", fields: [usuarioId], references: [id])
+  
+  // Índices
+  @@id(id)
+  @@index([usuarioId])
+  @@index([email])
+  @@index([codigo])
+  @@index([estado])
 }

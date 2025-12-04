@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { MailService } from '../mail/mail.service';
 import { UsuarioAdicionalService } from '../usuario-adicional/usuario-adicional.service';
 import { CreateUsuarioDto } from '../usuario/dto/create-usuario.dto';
+import { jwtConstants } from './constants';
 
 @Injectable()
 export class AuthService {
@@ -56,8 +57,15 @@ export class AuthService {
     }
 
     const payload = { sub: user.id, username: user.nombre, email: user.mail };
+    const accessToken = await this.jwtService.signAsync(payload);
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: jwtConstants.refreshSecret,
+      expiresIn: jwtConstants.refreshExpiresIn,
+    });
+    
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: accessToken,
+      refresh_token: refreshToken,
       usuario: { id: user.id, nombre: user.nombre, mail: user.mail }
     };
   }
@@ -163,5 +171,30 @@ export class AuthService {
     await this.usuarioAdicionalService.remove(adicional.usuarioId, adicional.clave);
 
     return { message: 'Contraseña actualizada correctamente' };
+  }
+
+  async refreshAccessToken(refreshToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: jwtConstants.refreshSecret,
+      });
+
+      // Verificar que el usuario aún existe y está activo
+      const user = await this.usuarioService.findOne(payload.sub);
+      if (!user || !user.activo) {
+        throw new UnauthorizedException('Usuario inválido o inactivo');
+      }
+
+      // Generar nuevo access token
+      const newPayload = { sub: user.id, username: user.nombre, email: user.mail };
+      const accessToken = await this.jwtService.signAsync(newPayload);
+
+      return {
+        access_token: accessToken,
+      };
+    } catch (error) {
+      this.logger.error('Error al refrescar token', error);
+      throw new UnauthorizedException('Refresh token inválido o expirado');
+    }
   }
 }
