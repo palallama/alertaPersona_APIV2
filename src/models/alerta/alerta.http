@@ -29,3 +29,10 @@ Content-Type: application/json
     "id": 6,
     "estado": "S"
 }
+
+
+###
+
+# Obtener alertas activas de mis contactos
+GET http://localhost:4000/api/alerta/contactos/activas
+Authorization: Bearer YOUR_TOKEN_HERE

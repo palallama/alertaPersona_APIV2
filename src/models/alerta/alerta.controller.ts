@@ -7,17 +7,22 @@ import {
   Param,
   Delete,
   Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { AlertaService } from './alerta.service';
 import { CreateAlertaDto } from './dto/create-alerta.dto';
 import { UpdateAlertaDto } from './dto/update-alerta.dto';
 import { CloseAlertaDto } from './dto/close-alerta.dto';
+import { ActiveContactAlertsResponseDto } from './dto/active-contact-alerts.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiQuery,
   ApiParam,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Alerta')
@@ -39,6 +44,26 @@ export class AlertaController {
   findAll(@Query('cerrada') cerrada?: string) {
     const cerradaBool = cerrada ? cerrada === 'true' : undefined;
     return this.alertaService.findAll(cerradaBool);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('contactos/activas')
+  @ApiBearerAuth()
+  @ApiOperation({ 
+    summary: 'Obtener alertas activas de los usuarios de los que soy un contacto activo',
+    description: 'Devuelve todas las alertas activas emitidas por usuarios que tienen al usuario actual como contacto activo y aceptado. Si no hay alertas, devuelve un array vacío.'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de alertas activas de contactos con contador (puede estar vacía)',
+    type: ActiveContactAlertsResponseDto
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: 'No autenticado - Token JWT requerido' 
+  })
+  findActiveAlertsFromMyContacts(@Request() req: any) {
+    return this.alertaService.findActiveAlertsFromMyContacts(req.user.id);
   }
 
   @Get(':id')

@@ -157,4 +157,64 @@ export class AlertaService extends PrismaClient implements OnModuleInit {
     // });
 
   }
+
+  /**
+   * Obtiene las alertas activas de los usuarios de los que soy un contacto activo
+   * @param usuarioId ID del usuario que consulta (quien es contacto de otros)
+   * @returns Lista de alertas activas con la información del contacto
+   */
+  async findActiveAlertsFromMyContacts(usuarioId: number) {
+    // Buscar todos los contactos donde el usuario actual es el contacto (contactoId)
+    // y la relación está aceptada y activa
+    const contactRelations = await this.contacto.findMany({
+      where: {
+        contactoId: usuarioId, // Donde YO soy el contacto de alguien
+        estado: 'A', // Relación aceptada
+        activo: true, // Relación activa
+        eliminado: false
+      },
+      select: {
+        usuarioId: true, // El usuario que me tiene como contacto
+      }
+    });
+
+    if (contactRelations.length === 0) {
+      return {
+        alerts: [],
+        count: 0
+      };
+    }
+
+    // Extraer los IDs de los usuarios que me tienen como contacto
+    const usuarioIds = contactRelations.map(rel => rel.usuarioId);
+
+    // Buscar alertas activas de esos usuarios
+    const alertas = await this.alerta.findMany({
+      where: {
+        usuarioId: { in: usuarioIds },
+        cerrada: false, // Solo alertas activas
+      },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            telefono: true,
+          }
+        }
+      },
+      orderBy: {
+        fchEmision: 'desc'
+      }
+    });
+
+    // Aplicar el mismo formato que otros endpoints
+    const formattedAlerts = alertas.map(this.formatAlerta);
+    
+    return {
+      alerts: formattedAlerts,
+      count: formattedAlerts.length
+    };
+  }
 }

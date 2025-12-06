@@ -12,8 +12,19 @@ export class AsistenteService extends PrismaClient implements OnModuleInit {
   }
   
   async create(createAsistenteDto: CreateAsistenteDto) {
-    return this.asistente.create({
-      data: createAsistenteDto,
+    // Usar upsert para crear o actualizar si ya existe
+    return this.asistente.upsert({
+      where: {
+        alertaId_usuarioId: {
+          alertaId: createAsistenteDto.alertaId,
+          usuarioId: createAsistenteDto.usuarioId,
+        },
+      },
+      update: {
+        estado: createAsistenteDto.estado,
+        observacion: createAsistenteDto.observacion,
+      },
+      create: createAsistenteDto,
     });
   }
 

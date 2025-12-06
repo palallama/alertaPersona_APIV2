@@ -111,6 +111,15 @@ export class ContactoService extends PrismaClient implements OnModuleInit {
             apellido: true,
             mail: true
           }
+        },
+        contactoUsuario: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            mail: true,
+            telefono: true
+          }
         }
       }
     });
@@ -129,6 +138,47 @@ export class ContactoService extends PrismaClient implements OnModuleInit {
       throw new BadRequestException('Esta solicitud ya fue respondida anteriormente');
     }
 
+    // Si se acepta la solicitud, crear relación bidireccional
+    if (respuesta.estado === 'A') {
+      // Actualizar la solicitud original a aceptada
+      const solicitudActualizada = await this.contacto.update({
+        where: { id },
+        data: {
+          estado: 'A',
+          activo: true,
+          fchRespuesta: new Date()
+        },
+        include: {
+          usuario: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              mail: true
+            }
+          },
+          contactoUsuario: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              mail: true,
+              telefono: true
+            }
+          }
+        }
+      });
+
+      // Crear la relación inversa (usuario que aceptó -> usuario que solicitó)
+      await this.crearRelacionContactoBidireccional(
+        solicitud.contactoId,
+        solicitud.usuarioId
+      );
+
+      return solicitudActualizada;
+    }
+
+    // Si se rechaza, solo actualizar el estado
     return this.contacto.update({
       where: { id },
       data: {
@@ -758,26 +808,16 @@ export class ContactoService extends PrismaClient implements OnModuleInit {
       }
     });
 
-    // Crear la relación de contacto bidireccional
-    // Usuario que invitó -> Usuario invitado
-    const contacto1 = await this.contacto.create({
-      data: {
-        usuarioId: invitacion.usuarioId,
-        contactoId: usuarioRegistradoId,
-        estado: 'A', // Automáticamente aceptado
-        activo: true
-      }
-    });
+    // Crear las relaciones de contacto bidireccionales
+    const contacto1 = await this.crearRelacionContactoBidireccional(
+      invitacion.usuarioId,
+      usuarioRegistradoId
+    );
 
-    // Usuario invitado -> Usuario que invitó
-    const contacto2 = await this.contacto.create({
-      data: {
-        usuarioId: usuarioRegistradoId,
-        contactoId: invitacion.usuarioId,
-        estado: 'A', // Automáticamente aceptado
-        activo: true
-      }
-    });
+    const contacto2 = await this.crearRelacionContactoBidireccional(
+      usuarioRegistradoId,
+      invitacion.usuarioId
+    );
 
     return {
       message: 'Invitación aceptada exitosamente',
@@ -857,6 +897,50 @@ export class ContactoService extends PrismaClient implements OnModuleInit {
       link,
       qrData: link // Este link se puede usar para generar QR en el frontend
     };
+  }
+
+  /**
+   * Crea una relación de contacto unidireccional
+   * Utilizado para crear relaciones bidireccionales
+   */
+  private async crearRelacionContactoBidireccional(usuarioId: number, contactoId: number) {
+    // Verificar si ya existe una relación (podría estar eliminada o rechazada)
+    const relacionExistente = await this.contacto.findFirst({
+      where: {
+        usuarioId,
+        contactoId,
+        eliminado: false
+      }
+    });
+
+    // Si existe y está aceptada, no hacer nada
+    if (relacionExistente && relacionExistente.estado === 'A') {
+      return relacionExistente;
+    }
+
+    // Si existe pero fue rechazada o está en otro estado, actualizarla
+    if (relacionExistente) {
+      return this.contacto.update({
+        where: { id: relacionExistente.id },
+        data: {
+          estado: 'A',
+          activo: true,
+          fchRespuesta: new Date(),
+          eliminado: false,
+          fchEliminacion: null
+        }
+      });
+    }
+
+    // Si no existe, crear nueva relación
+    return this.contacto.create({
+      data: {
+        usuarioId,
+        contactoId,
+        estado: 'A',
+        activo: true
+      }
+    });
   }
 
   /**
